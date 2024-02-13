@@ -1,0 +1,111 @@
+<html>
+<canvas onmousemove="mymousemove(event)" id=myCanvas width=300 height=300 style="border:1px solid gray"></canvas>
+<style>*{font-family:Arial;}</style>
+<script>
+const myCanvas = document.getElementById("myCanvas");
+const ctx = myCanvas.getContext("2d");
+
+var paddle_x = 0;
+const paddle_y = myCanvas.height - 30;
+var paddle_width = 80;
+const paddle_height = 15;
+
+var ball_x = 0;
+var ball_y = 0;
+const ball_width = 20;
+const ball_height = 20;
+
+var x_inc = 3;
+var y_inc = 2;
+var gameOver = false;
+var score = 0;
+
+function mymousemove(event) {
+    const rect = myCanvas.getBoundingClientRect();
+    paddle_x = event.clientX - rect.left - (paddle_width/2);
+}
+
+function main_loop() {
+    ctx.clearRect(0,0,myCanvas.width,myCanvas.height);
+    ctx.fillStyle = "#FC6736";
+    ctx.fillRect(0,0,myCanvas.width,myCanvas.height);
+    
+    ctx.fillStyle = "#EFECEC";
+    ctx.fillRect(paddle_x, paddle_y, paddle_width, paddle_height);
+
+    ctx.beginPath();
+    ctx.fillStyle = "#0C2D57";
+    ctx.arc(ball_x,ball_y,10,0,Math.PI*2);
+    ctx.fill();
+    ctx.closePath();
+
+    ctx.fillStyle = "#BFD8AF";
+    ctx.font = "32px Arial";
+    ctx.fillText(score, 10, 32);
+
+    if (ball_y + ball_height > myCanvas.height) {
+        ctx.fillStyle = "red";
+        ctx.font = "20px Arial";
+        // TODO: all you can do is lose. how can you win?
+        ctx.fillText("You lose!", 100, 100);
+        gameOver = true;
+    }
+
+    if (gameOver) {
+        return;
+    }
+
+    // bounce on paddle
+    // TODO: this collision detection has some problems, can you improve it?
+    if (ball_x + ball_width >= paddle_x && 
+        ball_x <= paddle_x + paddle_width &&
+        ball_y + ball_height >= paddle_y && 
+        ball_y < paddle_y + paddle_height)
+    {
+       
+       x_inc = x_inc < 12 ? x_inc + 0.5 : 12;
+       y_inc = y_inc < 9 ? y_inc + 0.5 : 9;
+       y_inc *= -1;
+       x_inc *= -1;
+       paddle_width = paddle_width > 20 ? paddle_width - 4 : 19;
+
+       score++;
+    }
+
+    // move it
+    ball_x = ball_x + x_inc;
+    ball_y = ball_y + y_inc;
+
+    // bounce on the edges
+    if (ball_x <= 0 || ball_x >= myCanvas.width - ball_width) {
+        x_inc = x_inc * -1;
+    }
+    if (ball_y <= 0) {
+        y_inc = y_inc * -1;
+    }
+requestAnimationFrame(main_loop);
+}
+
+main_loop();
+
+function start() {
+  ball_x = 0;
+  ball_y = 0;
+  x_inc = 3;
+  y_inc = 2;
+  score = 0;
+  gameOver = false;
+  main_loop();
+}
+</script>
+<br>
+<br>
+<button onclick="start();">Replay</button>
+
+<h2>PingPong 3.2</h2>
+
+<h4>Fixed first issue, updated colors, and changed the ball to a circle. Increased performance to smooth 60FPS. Added replay button, and increasing difficulty mechanic, where your paddle gets smaller and the ball gets faster the longer you play.</h4>
+
+<h4>Now available on Github!!</h4>
+
+</html>
