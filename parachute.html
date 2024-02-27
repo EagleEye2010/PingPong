@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parachute</title>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #cv {
+      background-color: #4cdfdf;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="cv" onclick="screenClicked=true"></canvas>
+  <script>
+    var canvas = document.getElementById('cv');
+    var ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    var keys = {};
+
+    var plane = {
+      x: 0,
+      img: new Image(),
+    }
+
+    var bomb = {
+      x: 0,
+      y: 60,
+      img: new Image(),
+    }
+
+    var target = {
+      x: 0,
+      y: 510,
+      w: (Math.random() * 150) + 10,
+    }
+
+    var screenClicked = false;
+    var nudges = 20;
+    var canNudge = true;
+
+    var wind = (Math.random() * 18) - 9;
+    var gameStat = 0;
+
+    target.x = Math.random() * (canvas.width - target.w);
+
+    var flyPlane = false;
+    var dropBomb = false;
+    var dropped = false;
+    var targetDestroyed = false;
+    var explosions = [];
+    var explosion = false;
+
+    plane.img.src = 'https://cdn.pixabay.com/photo/2013/04/01/11/00/airplane-98872_1280.png';
+    bomb.img.src = 'bomb.png';
+
+
+    function spaceToStart() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = 'black';
+      ctx.font = 'bold 24px Helvetica';
+      ctx.textAlign = 'center';
+      ctx.fillText('Click to start. Space to drop. Arrow Keys to nudge left / right.',canvas.width/2,canvas.height/2);
+
+      if (screenClicked) {
+        setTimeout(game,30);
+        flyPlane = true;
+      } else {
+        requestAnimationFrame(spaceToStart);
+      }
+    }
+
+    function game() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.font = 'bold 24px Helvetica';
+      ctx.fillStyle = 'black';
+      ctx.textAlign = 'left'
+      ctx.fillText('Wind: ' + Math.abs(Math.round(wind*10))/10 + 'mph ' + (wind>0?'right':'left'),40,40);
+
+      // Draw Ground
+      ctx.fillStyle = '#996633';
+      ctx.fillRect(0,550,canvas.width,canvas.height - 550);
+
+      if (flyPlane) {
+        plane.x += 3;
+        ctx.save();
+        ctx.translate(plane.x + 30, 40);
+        ctx.rotate(Math.PI);
+        ctx.translate(-plane.x - 30, -40);
+        ctx.drawImage(plane.img,plane.x,20,60,40);
+        ctx.restore();
+
+        if (checkKey(' ') && !dropped && gameStat == 0) {
+          console.log('TRIGGERED')
+          dropBomb = true;
+          dropped = true;
+          bomb.x = plane.x;
+          bomb.y = 60;
+        }
+
+        if (plane.x > canvas.width) {
+          flyPlane = false;
+          if (!dropped) {
+            gameStat = 2;
+          }
+        }
+      }
+
+      if (dropBomb) {
+        ctx.drawImage(bomb.img,bomb.x,bomb.y,6);
+        bomb.y += 2;
+
+        bomb.x += wind/5;
+
+        if (bomb.y + 18 > 550) {
+          dropBomb = false;
+          explosion = true;
+          console.log('DEFEAT');
+          gameStat = 2;
+        }
+
+        if ((checkKey('a') || checkKey('ArrowLeft')) && canNudge && nudges > 0) {
+          bomb.x -= 3;
+          nudges--;
+          setTimeout(function(){canNudge=true},100);
+        }
+
+        if ((checkKey('d') || checkKey('ArrowRight')) && canNudge && nudges > 0) {
+          bomb.x += 3;
+          nudges--;
+          setTimeout(function(){canNudge=true},100);
+        }
+
+        if (
+            bomb.x < target.x + target.w &&
+            bomb.x + 6 > target.x &&
+            bomb.y < target.y + 40 &&
+            bomb.y + 18 > target.y
+          ) {
+            console.log('VICTORY');
+            gameStat = 1;
+            explosion = true;
+            dropBomb = false;
+          }
+      }
+
+      if (explosion) {
+        for (let i = 0; i < 25; i++) {
+          explosions.push(new Explosion());
+          explosions[i].setD(bomb.x,bomb.y, i * ((Math.PI*2)/25));
+        }
+        explosion = false;
+      }
+
+      if (explosions.length > 0) {
+        for (let i in explosions) {
+          explosions[i].update();
+          if (explosions[i].maxD < explosions[i].traveled) {
+            explosions.pop(i,1);
+            i--;
+          }
+        }
+      }
+
+      if (!targetDestroyed) {
+        ctx.fillStyle = 'green';
+        ctx.fillRect(target.x,target.y,target.w,40);
+      }
+
+      if (gameStat > 0) {
+        ctx.font = 'bold 48px Helvetica';
+        ctx.textAlign = 'center';
+        if (gameStat == 1) {
+          ctx.fillStyle = 'green';
+          ctx.fillText('Victory!',canvas.width/2,canvas.height/2);
+        } else {
+          ctx.fillStyle = 'red';
+          ctx.fillText('Defeat!',canvas.width/2,canvas.height/2);
+        }
+      }
+
+      requestAnimationFrame(game);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+    });
+
+    function checkKey(e) {
+      if (e in keys) {
+        if (keys[e]) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+
+    class Explosion {
+      constructor() {
+        this.x = 0;
+        this.y = 0;
+        this.v = (Math.random() * 7) + 1;
+        this.a = 0;
+        this.maxD = this.v * 20;
+        this.traveled = 0;
+        this.opacity = 1;
+      }
+      setD(x,y,a) {
+        this.x = x;
+        this.y = y;
+        this.a = a;
+      }
+      update() {
+        this.x += this.v * Math.cos(this.a);
+        this.y += this.v * Math.sin(this.a);
+        this.traveled += this.v;
+        ctx.fillStyle = 'rgba(50,50,50,' + this.opacity + ')';
+        this.opacity = 1 - (this.traveled/this.maxD);
+        ctx.beginPath();
+        ctx.arc(this.x,this.y,4,0,Math.PI*2);
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+
+    window.onresize = function() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.onload = function() {
+      spaceToStart();
+    }
+  </script>
+</body>
+</html>
