@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Minigames</title>
+</head>
+<body>
+  <nav>
+    <h1>Minigames</h1>
+  </nav>
+  <div id="description">
+    <h4>Hover over game to show description.</h4>
+  </div>
+  <section id="games">
+    <div class="grid-container">
+      <button id="parachute" onmouseover="switchDesc('A game where you attempt to drop the bomb on the target. Watch out for the wind!')" onclick="redirect('parachute/parachute.html')">
+        <h1>Parachute</h1>
+      </button>
+      <button id="platformer" onmouseover="switchDesc('Jump over platforms, kill enemies, and beat the boss.')" onclick="redirect('platformer/platformer.html')">
+        <h1>Platformer</h1>
+      </button>
+      <button id="tanks" onmouseover="switchDesc('Destroy your friends or siblings in a tanks game.')" onclick="redirect('tanks/tanks.html')">
+        <h1>Tanks</h1>
+      </button>
+      <button id="asteroids" onmouseover="switchDesc('Destroy asteroids, level up your ship, murder UFOs, and destroy the alien base.')" onclick="redirect('asteroids/asteroids.html')">
+        <h1>Asteroids</h1>
+      </button>
+    </div>
+  </section>
+  <script src="script.js"></script>
+</body>
+</html>
