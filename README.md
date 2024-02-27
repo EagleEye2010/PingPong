@@ -1,2 +1,2 @@
-# 乒乓3.2
-### Go visit the website to view the game.
+# 鳄梨游戏3.2
+### 上网所以你见我的游戏。现在！
