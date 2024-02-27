@@ -4,5 +4,5 @@ function switchDesc(d) {
 }
 
 function redirect(file) {
-  window.open('games/' + file);
+  window.open(file);
 }
